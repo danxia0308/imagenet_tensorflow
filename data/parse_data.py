@@ -1,14 +1,14 @@
 import numpy as np
 import os
 import imageio
-import cv2
+from tqdm import tqdm
 
 base_dir='/data/sophie_bak/imagenet/'
 img_dir=os.path.join(base_dir,'imagenet_train')
 bbox_path=os.path.join(base_dir,'bbox_infos.npy')
 dst_img_dir='/data/sophie_bak/imagenet/imagenet_train_crop'
 bbox_dict=np.load(bbox_path).item()
-for dir_name in os.listdir(img_dir):
+for dir_name in tqdm(os.listdir(img_dir)):
     dir_path = os.path.join(img_dir,dir_name)
     dst_dir=os.path.join(dst_img_dir,dir_name)
     if not os.path.exists(dst_dir):

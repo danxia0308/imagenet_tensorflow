@@ -31,7 +31,7 @@ for dir_name in tqdm(dirs):
         xmax=int(bbox_info['xmax'])
         ymax=int(bbox_info['ymax'])
         img=imageio.imread(file_path)
-        img_dst=img[xmin:ymin,xmax:ymax]
+        img_dst=img[ymin:ymax,xmin:xmax]
         dst_img_path=os.path.join(dst_img_dir,dir_name,file_name)
         print(dst_img_path)
         imageio.imsave(dst_img_path,img_dst)

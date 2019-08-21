@@ -2,6 +2,7 @@ import numpy as np
 import os
 import imageio
 from tqdm import tqdm
+import pdb
 
 base_dir='/data/sophie_bak/'
 img_dir=os.path.join(base_dir,'imagenet_train')
@@ -20,10 +21,11 @@ for dir_name in tqdm(os.listdir(img_dir)):
         if(bbox_info == None):
             print('{} does not has bbox info.'.format(file_path))
             continue
-        xmin=bbox_info['xmin']
-        ymin=bbox_info['ymin']
-        xmax=bbox_info['xmax']
-        ymax=bbox_info['ymax']
+#         pdb.set_trace()
+        xmin=int(bbox_info['xmin'])
+        ymin=int(bbox_info['ymin'])
+        xmax=int(bbox_info['xmax'])
+        ymax=int(bbox_info['ymax'])
         img=imageio.imread(file_path)
         img_dst=img[xmin:ymin,xmax:ymax]
         imageio.save(os.path.join(dst_img_dir,dir_name,file_name),img_dst)

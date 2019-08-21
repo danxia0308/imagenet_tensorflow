@@ -25,7 +25,6 @@ for dir_name in tqdm(dirs):
         if(bbox_info == None):
             print('{} does not has bbox info.'.format(file_path))
             continue
-        pdb.set_trace()
         xmin=int(bbox_info['xmin'])
         ymin=int(bbox_info['ymin'])
         xmax=int(bbox_info['xmax'])
@@ -33,6 +32,6 @@ for dir_name in tqdm(dirs):
         img=imageio.imread(file_path)
         img_dst=img[ymin:ymax,xmin:xmax]
         dst_img_path=os.path.join(dst_img_dir,dir_name,file_name)
-        print(dst_img_path)
+#         print(dst_img_path)
         imageio.imsave(dst_img_path,img_dst)
         

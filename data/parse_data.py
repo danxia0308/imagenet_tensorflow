@@ -25,7 +25,7 @@ for dir_name in tqdm(dirs):
         if(bbox_info == None):
             print('{} does not has bbox info.'.format(file_path))
             continue
-#         pdb.set_trace()
+        pdb.set_trace()
         xmin=int(bbox_info['xmin'])
         ymin=int(bbox_info['ymin'])
         xmax=int(bbox_info['xmax'])

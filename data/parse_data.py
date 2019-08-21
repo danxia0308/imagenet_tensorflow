@@ -3,7 +3,7 @@ import os
 import imageio
 from tqdm import tqdm
 
-base_dir='/data/sophie_bak/imagenet/'
+base_dir='/data/sophie_bak/'
 img_dir=os.path.join(base_dir,'imagenet_train')
 bbox_path=os.path.join(base_dir,'bbox_infos.npy')
 dst_img_dir='/data/sophie_bak/imagenet/imagenet_train_crop'

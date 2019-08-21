@@ -7,7 +7,7 @@ import pdb
 base_dir='/data/sophie_bak/'
 img_dir=os.path.join(base_dir,'imagenet_train')
 bbox_path=os.path.join(base_dir,'bbox_infos.npy')
-dst_img_dir='/data/sophie_bak/imagenet/imagenet_train_crop'
+dst_img_dir='/data/sophie_bak/imagenet_train_crop'
 bbox_dict=np.load(bbox_path).item()
 for dir_name in tqdm(os.listdir(img_dir)):
     dir_path = os.path.join(img_dir,dir_name)
@@ -29,5 +29,6 @@ for dir_name in tqdm(os.listdir(img_dir)):
         img=imageio.imread(file_path)
         img_dst=img[xmin:ymin,xmax:ymax]
         dst_img_path=os.path.join(dst_img_dir,dir_name,file_name)
+        print(dst_img_path)
         imageio.imsave(dst_img_path,img_dst)
         

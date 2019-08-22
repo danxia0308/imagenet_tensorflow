@@ -34,7 +34,11 @@ def crop_train_img():
             ymax=int(bbox_info['ymax'])
             img=imageio.imread(file_path)
             img_dst=img[ymin:ymax,xmin:xmax]
-            imageio.imsave(dst_img_path,img_dst)
+            try:
+                imageio.imsave(dst_img_path,img_dst)
+            except Exception as e:
+                print('file_path={}'.format(file_path))
+                print(e)
 
 crop_train_img()
     

@@ -32,8 +32,14 @@ def crop_train_img():
             ymin=int(bbox_info['ymin'])
             xmax=int(bbox_info['xmax'])
             ymax=int(bbox_info['ymax'])
+            width=int(bbox_info['width'])
+            height=int(bbox_info['height'])
             img=imageio.imread(file_path)
             img_dst=img[ymin:ymax,xmin:xmax]
+            img_height,img_width,img_channel=img.shape
+            if (img_height != height or img_width != width):
+                print('{} origin_height={} origin_width={} ann_height={} ann_width={}'.format(file_path, height, width,img_height,img_width))
+                continue
             try:
                 imageio.imsave(dst_img_path,img_dst)
             except Exception as e:

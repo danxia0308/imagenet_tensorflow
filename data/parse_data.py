@@ -36,7 +36,10 @@ def crop_train_img():
             height=int(bbox_info['height'])
             img=imageio.imread(file_path)
             img_dst=img[ymin:ymax,xmin:xmax]
-            img_height,img_width,img_channel=img.shape
+            if img.ndim==2:
+                img_height,img_width=img.shape
+            else:
+                img_height,img_width,img_channel=img.shape
             if (img_height != height or img_width != width):
                 print('{} origin_height={} origin_width={} ann_height={} ann_width={}'.format(file_path, height, width,img_height,img_width))
                 continue

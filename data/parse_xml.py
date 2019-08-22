@@ -37,12 +37,19 @@ def get_file_info(path):
 def parse_all_file_info():
     dir_path='/Users/chendanxia/sophie/segmentation_img_set/imagenet/ILSVRC2012_bbox_train_v2/'
     dst_file='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos.npy'
+    dir_path='/Users/chendanxia/Downloads/imagenetannotations/Annotation/'
+    dst_file='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos_all.npy'
+    names_file='/Users/chendanxia/sophie/segmentation_img_set/imagenet/names.npy'
+    names=np.load(names_file)
     files_info_dict={}
     for sub_dir in tqdm(os.listdir(dir_path)):
         sub_dir_path=os.path.join(dir_path,sub_dir)
         if not os.path.isdir(sub_dir_path):
             continue
         for file_name in os.listdir(sub_dir_path):
+            class_name=file_name.split('_')[0]
+            if class_name not in names:
+                continue
             file_path=os.path.join(sub_dir_path,file_name)
             name,file_info_dict=get_file_info(file_path)
             files_info_dict[name]=file_info_dict
@@ -52,12 +59,19 @@ def parse_all_file_info():
     np.save(dst_file, files_info_dict)
 
 def analysis():
-    dst_file='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos.npy'
-    d=np.load(dst_file)
-    print(len(d.item().keys()))
-#     print(d.item())
-    ele=d.item().get('n01440764_18')
-    print(ele['xmax'])
+    dst_file='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos_all.npy'
+    d=np.load(dst_file).item()
+    print(len(d.keys()))
+    dst_file2='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos.npy'
+    d2=np.load(dst_file2).item()
+    print(len(d2.keys()))
+    keys=d.keys()
+    keys2=d2.keys()
+    for key in tqdm(keys2):
+        if key not in keys:
+            d[key]=d2[key]
+    np.save('/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos_final.npy',d)
+    
     
 # parse_all_file_info()
 analysis()

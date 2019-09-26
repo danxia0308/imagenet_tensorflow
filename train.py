@@ -132,3 +132,4 @@ def parseArguments():
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
     return parser.parse_args(sys.argv)
 
+main(parseArguments())

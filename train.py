@@ -30,7 +30,7 @@ def main():
     net = slim.flatten(encoder.stage4)
     net = slim.dropout(net, args.dropout, is_training=is_training)
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                         weights_initializer=slim.l2_regularizer(args.weight_decay), weights_regularizer, trainable=is_training)
+                         weights_initializer=slim.l2_regularizer(args.weight_decay), trainable=is_training)
     
     #build the loss
     ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_label,logits=x_pl)

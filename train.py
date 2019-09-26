@@ -131,10 +131,10 @@ def get_val_dataset(args):
 
 def get_train_op(loss, global_step, learning_rate):
     optimizer = tf.train.AdamOptimizer(learning_rate)
-    compute_grads = optimizer.compute_gradients(loss, tf.global_variables())
-    apply_grads = optimizer.apply_gradients(compute_grads, global_step)
-    with tf.control_dependencies([compute_grads, apply_grads]):
-        train_op=tf.no_op('train')
+#     compute_grads = optimizer.compute_gradients(loss, tf.global_variables())
+#     apply_grads = optimizer.apply_gradients(compute_grads, global_step)
+    with tf.control_dependencies():
+        train_op=optimizer.minimize(loss, global_step)
     return train_op
 
 

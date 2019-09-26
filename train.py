@@ -7,6 +7,7 @@ from tensorflow.python.autograph.core.converter import apply_
 from email.policy import default
 from tensorflow.python.framework.errors_impl import OutOfRangeError
 from tqdm import tqdm
+from utils import misc
 
 def main():
     args=parseArguments()
@@ -33,23 +34,44 @@ def main():
     
     #build the loss
     ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_label,logits=x_pl)
+    pre_class=tf.arg_max(ce, axis=1)
     cross_entropy_loss=tf.reduce_mean(ce)
     regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     loss=cross_entropy_loss+regularization_loss
-    
+    saver = tf.train.Saver(max_to_keep=1)
     #start the train
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=tf.data.make_initializable_iterator(dataset)
     learning_rate=5e4
     with tf.Session() as sess:
+        save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
+        if save_path != None:
+            print('restore from {}'.format(save_path))
+            saver.restore(sess, save_path)
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
+            learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
             train_op=get_train_op(loss, i, learning_rate)
             for i in tqdm(range(batch_num_one_epoch)):
                 x_batch, y_batch= iterator.get_next()
                 sess.run(train_op, feed_dict={x_pl:x_batch, y_label:y_batch})
+            if i % args.validate_every == 0:
+                validate(pre_class)
+            if i % args.save_every == 0:
+                saver.save(sess, args.checkpoint_dir, i)
                 
-                
+def validate(pre_class):
+    dataset, batch_num = get_val_dataset(args)
+    labels=[]
+    pres=[]
+    for i in tqdm(range(batch_num)):
+        x_batch, y_batch = iterator.get_next()
+        pre = sess.run(pre_class, feed_dict={x_pl:x_batch, y_label:y_batch})
+        pres.extend(pre)
+        labels.extend(y_batch)
+    tp=np.sum(np.where(lables-pres==0,1,0))
+    acc=tp/(batch_num*args.batch_size)
+    print('acc={}'.format(acc))
 
 def parse_dataset(image_path, label):
     image_string=tf.read_file(image_path)
@@ -68,12 +90,21 @@ def get_dataset(args):
         labels.extend([i]*len(file_names))
     dataset=tf.data.Dataset.from_tensor_slices((image_paths,labels))
     dataset=dataset.map(parse_dataset)
-    dataset=dataset.shuffle(buffer_size=len(img_paths))
-    dataset.batch(args.batch_size)
+    dataset=dataset.shuffle(buffer_size=len(img_paths)).batch(args.batch_size)
+    return dataset, len(img_paths)//args.batch_size
+
+def get_val_dataset(args):
+    with open(args.val_label_file) as f:
+        content=f.read()
+        labels=content.split('\n')
+    names=os.listdir(args.val_img_dir)
+    names.sort()
+    dataset = tf.data.Dataset.from_tensor_slices((names,labels))
+    dataset = dataset.map(parse_dataset).batch(args.batch_size)
     return dataset, len(img_paths)//args.batch_size
     
     
-    
+
 def get_train_op(loss, global_step, learning_rate):
     optimizer = tf.train.AdamOptimizer(learning_rate)
     compute_grads = optimizer.compute_gradients(loss, tf.global_variables())
@@ -84,14 +115,18 @@ def get_train_op(loss, global_step, learning_rate):
 
 def parseArguments():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--height',default=256)
-    parser.add_argument('--width',default=256)
+    parser.add_argument('--height',default=128)
+    parser.add_argument('--width',default=128)
     parser.add_argument('--batch_size',default=64)
     parser.add_argument('--dropout',default=0.8)
     parser.add_argument('--weight_decay',default=5e4)
-    parser.add_argument('--img_dir',default='/data/sophie_bak/imagenet_train')
+    parser.add_argument('--img_dir',default='/data/sophie_bak/imagenet_train/')
     parser.add_argument('--num_epochs',default=300)
     parser.add_argument('--save_every',default=1)
     parser.add_argument('--validate_every',default=1)
+    parser.add_argument('--learning_rate_file', default='./data/learning_rate.txt')
+    parser.add_argument('--val_img_dir', default='/data/sophie_bak/imagenet_val/')
+    parser.add_argument('--val_label_file', default='/data/sophie_bak/ILSVRC2012_validation_ground_truth.txt')
+    parser.add_argument('--checkpoint_dir', default='./checkpoints')
     return parser.parse_args(sys.argv)
 

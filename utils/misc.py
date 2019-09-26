@@ -98,3 +98,23 @@ def show_parameters():
     tf.profiler.profile(
         tf.get_default_graph(),
         options=tf.profiler.ProfileOptionBuilder.trainable_variables_parameter(), cmd='scope')
+
+
+def get_learning_rate(lr_file, epoch):
+    final_lr=None
+    with open(lr_file,'r') as f:
+        content=f.read()
+        lines=content.split('\n')
+        for i, line in enumerate(lines):
+            nums=line.split(':')
+            if len(nums) !=2:
+                continue
+            epoch_num=(int)(nums[0])
+            lr=(float)(nums[1])
+            if epoch >= epoch_num:
+                final_lr=lr
+            else:
+                break
+    return final_lr
+
+    

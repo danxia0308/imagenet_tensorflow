@@ -8,6 +8,7 @@ from email.policy import default
 from tensorflow.python.framework.errors_impl import OutOfRangeError
 from tqdm import tqdm
 from utils import misc
+import pdb
 
 def main():
     args=parseArguments()
@@ -43,6 +44,7 @@ def main():
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=tf.data.make_initializable_iterator(dataset)
     learning_rate=5e4
+    pdb.set_trace()
     with tf.Session() as sess:
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
         if save_path != None:

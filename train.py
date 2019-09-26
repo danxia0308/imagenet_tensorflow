@@ -103,6 +103,7 @@ def parse_dataset(image_path, label):
     else:
         image=tf.image.decode_png(image_string)
     image_resized=tf.image.resize_images(image, (args.height,args.width))
+    image_resized = tf.cast(tf.uint8)
     return image_resized, label
 
 def get_dataset(args):

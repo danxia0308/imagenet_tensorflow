@@ -75,6 +75,8 @@ def main():
             train_op=get_train_op(loss, global_step, learning_rate)
             for i in tqdm(range(batch_num_one_epoch)):
                 x_batch, y_batch= iterator.get_next()
+                x_batch.set_shape(x_pl.get_shape())
+                y_batch.set_shape(y_label.get_shape())
                 sess.run(train_op, feed_dict={x_pl:x_batch, y_label:y_batch})
             if i % args.validate_every == 0:
                 validate(pre_class)

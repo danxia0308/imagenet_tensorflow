@@ -63,6 +63,7 @@ def main():
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=dataset.make_initializable_iterator()
     learning_rate=5e4
+    global_step=tf.train.get_or_create_global_step()
     with tf.Session() as sess:
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
         if save_path != None:
@@ -71,14 +72,14 @@ def main():
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
-            train_op=get_train_op(loss, i, learning_rate)
+            train_op=get_train_op(loss, global_step, learning_rate)
             for i in tqdm(range(batch_num_one_epoch)):
                 x_batch, y_batch= iterator.get_next()
                 sess.run(train_op, feed_dict={x_pl:x_batch, y_label:y_batch})
             if i % args.validate_every == 0:
                 validate(pre_class)
             if i % args.save_every == 0:
-                saver.save(sess, args.checkpoint_dir, i)
+                saver.save(sess, args.checkpoint_dir, global_step)
                 
 def validate(pre_class):
     dataset, batch_num = get_val_dataset(args)

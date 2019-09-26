@@ -61,7 +61,7 @@ def main():
     saver = tf.train.Saver(max_to_keep=1)
     #start the train
     dataset, batch_num_one_epoch=get_dataset(args)
-    iterator=tf.data.make_initializable_iterator(dataset)
+    iterator=dataset.make_initializable_iterator()
     learning_rate=5e4
     with tf.Session() as sess:
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
@@ -95,7 +95,7 @@ def validate(pre_class):
 
 def parse_dataset(image_path, label):
     image_string=tf.read_file(image_path)
-    if tf.image.is_jpeg(image_string):
+    if tf.image.is_jpeg(image_string) == True:
         image=tf.image.decode_jpeg(image_string)
     else:
         image=tf.image.decode_png(image_string)

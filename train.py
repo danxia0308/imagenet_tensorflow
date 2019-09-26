@@ -1,3 +1,4 @@
+import os
 from models.shufflenet import ShuffleNet
 import tensorflow as tf
 import argparse
@@ -10,8 +11,8 @@ from tqdm import tqdm
 from utils import misc
 import pdb
 
+args=parseArguments()
 def main():
-    args=parseArguments()
     is_training=True
     batch_norm_params = {
         'decay': 0.995,
@@ -30,12 +31,12 @@ def main():
     encoder.build()
     net = slim.flatten(encoder.stage4)
     net = slim.dropout(net, args.dropout, is_training=is_training)
+    #weights_initializer=slim.l2_regularizer(args.weight_decay)
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                         weights_initializer=slim.l2_regularizer(args.weight_decay), trainable=is_training)
-    
+                         trainable=is_training)
     #build the loss
-    ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_label,logits=x_pl)
-    pre_class=tf.arg_max(ce, axis=1)
+    ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_label,logits=net)
+    pre_class=tf.argmax(ce, axis=1)
     cross_entropy_loss=tf.reduce_mean(ce)
     regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     loss=cross_entropy_loss+regularization_loss
@@ -44,7 +45,6 @@ def main():
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=tf.data.make_initializable_iterator(dataset)
     learning_rate=5e4
-    pdb.set_trace()
     with tf.Session() as sess:
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
         if save_path != None:
@@ -84,13 +84,13 @@ def parse_dataset(image_path, label):
 def get_dataset(args):
     img_paths=[]
     labels=[]
-    class_names=os.listdir(args.img_path)
+    class_names=os.listdir(args.img_dir)
     class_names.sort()
     for i, class_name in enumerate(class_names):
-        file_names=os.listdir(os.path.join(args.img_path,class_name))
-        img_paths.extend([os.path.join(args.img_path,class_name,file_name) for file_name in file_names])
+        file_names=os.listdir(os.path.join(args.img_dir,class_name))
+        img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
-    dataset=tf.data.Dataset.from_tensor_slices((image_paths,labels))
+    dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels))
     dataset=dataset.map(parse_dataset)
     dataset=dataset.shuffle(buffer_size=len(img_paths)).batch(args.batch_size)
     return dataset, len(img_paths)//args.batch_size
@@ -130,6 +130,5 @@ def parseArguments():
     parser.add_argument('--val_img_dir', default='/data/sophie_bak/imagenet_val/')
     parser.add_argument('--val_label_file', default='/data/sophie_bak/ILSVRC2012_validation_ground_truth.txt')
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
-    return parser.parse_args(sys.argv)
-
-main(parseArguments())
+    return parser.parse_args(sys.argv[1:]) 
+main()

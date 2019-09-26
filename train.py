@@ -95,7 +95,10 @@ def validate(pre_class):
 
 def parse_dataset(image_path, label):
     image_string=tf.read_file(image_path)
-    image=tf.image.decode_image(image_string)
+    if tf.image.is_jpeg(image_string):
+        image=tf.image.decode_jpeg(image_string)
+    else:
+        image=tf.image.decode_png(image_string)
     image_resized=tf.image.resize_images(image, (args.height,args.width))
     return image_resized, label
 

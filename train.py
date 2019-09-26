@@ -11,7 +11,25 @@ from tqdm import tqdm
 from utils import misc
 import pdb
 
+def parseArguments():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--height',default=128)
+    parser.add_argument('--width',default=128)
+    parser.add_argument('--batch_size',default=64)
+    parser.add_argument('--dropout',default=0.8)
+    parser.add_argument('--weight_decay',default=5e4)
+    parser.add_argument('--img_dir',default='/data/sophie_bak/imagenet_train/')
+    parser.add_argument('--num_epochs',default=300)
+    parser.add_argument('--save_every',default=1)
+    parser.add_argument('--validate_every',default=1)
+    parser.add_argument('--learning_rate_file', default='./data/learning_rate.txt')
+    parser.add_argument('--val_img_dir', default='/data/sophie_bak/imagenet_val/')
+    parser.add_argument('--val_label_file', default='/data/sophie_bak/ILSVRC2012_validation_ground_truth.txt')
+    parser.add_argument('--checkpoint_dir', default='./checkpoints')
+    return parser.parse_args(sys.argv[1:]) 
+
 args=parseArguments()
+
 def main():
     is_training=True
     batch_norm_params = {
@@ -115,20 +133,5 @@ def get_train_op(loss, global_step, learning_rate):
         train_op=tf.no_op('train')
     return train_op
 
-def parseArguments():
-    parser=argparse.ArgumentParser()
-    parser.add_argument('--height',default=128)
-    parser.add_argument('--width',default=128)
-    parser.add_argument('--batch_size',default=64)
-    parser.add_argument('--dropout',default=0.8)
-    parser.add_argument('--weight_decay',default=5e4)
-    parser.add_argument('--img_dir',default='/data/sophie_bak/imagenet_train/')
-    parser.add_argument('--num_epochs',default=300)
-    parser.add_argument('--save_every',default=1)
-    parser.add_argument('--validate_every',default=1)
-    parser.add_argument('--learning_rate_file', default='./data/learning_rate.txt')
-    parser.add_argument('--val_img_dir', default='/data/sophie_bak/imagenet_val/')
-    parser.add_argument('--val_label_file', default='/data/sophie_bak/ILSVRC2012_validation_ground_truth.txt')
-    parser.add_argument('--checkpoint_dir', default='./checkpoints')
-    return parser.parse_args(sys.argv[1:]) 
+
 main()

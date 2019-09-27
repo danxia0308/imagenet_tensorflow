@@ -30,7 +30,7 @@ def parseArguments():
 
 args=parseArguments()
 
-def inference(x_batch, is_training):
+def inference(x_batch, y_batch, is_training):
     #build the network
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
@@ -46,7 +46,7 @@ def inference(x_batch, is_training):
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
                          trainable=is_training)
     #build the loss
-    ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_label,logits=net)
+    ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch,logits=net)
     pre_class=tf.argmax(ce, axis=1)
     cross_entropy_loss=tf.reduce_mean(ce)
     regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
@@ -69,7 +69,7 @@ def main():
     x_batch.set_shape((args.batch_size, args.height, args.width, 3))
     y_batch.set_shape((args.batch_size,))
     
-    pre_class, loss = inference(x_batch, is_training)
+    pre_class, loss = inference(x_batch, y_batch, is_training)
     saver = tf.train.Saver(max_to_keep=1)
     #start the train
     global_step=tf.train.get_or_create_global_step()
@@ -95,7 +95,7 @@ def validate(sess):
     labels=[]
     pres=[]
     x_batch, y_batch = iterator.get_next()
-    pre_class, _ = inference(x_batch, False)
+    pre_class, _ = inference(x_batch, y_batch, False)
     for i in tqdm(range(batch_num)):
         pre = sess.run(pre_class)
         pres.extend(pre)

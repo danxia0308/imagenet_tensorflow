@@ -108,9 +108,9 @@ def validate(sess):
 def parse_dataset(image_path, label):
     image_string=tf.read_file(image_path)
     if tf.image.is_jpeg(image_string) == True:
-        image=tf.image.decode_jpeg(image_string)
+        image=tf.image.decode_jpeg(image_string,channels=3)
     else:
-        image=tf.image.decode_png(image_string)
+        image=tf.image.decode_png(image_string,channels=3)
     image_resized=tf.image.resize_images(image, (args.height,args.width))
     image_resized = tf.cast(image_resized,tf.uint8)
     label = tf.cast(label, tf.int32)

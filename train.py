@@ -47,7 +47,7 @@ def inference(x_batch, y_batch, is_training):
         'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
     }
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                         trainable=is_training, reuse=tf.AUTO_REUSE)
+                         trainable=is_training)
 
     #build the loss
     ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch,logits=net)
@@ -107,9 +107,10 @@ def main():
                 with tf.name_scope('tower_{}'.format(i)) as scope:
                     x_batch_i=x_batches[i]
                     y_batch_i=y_batches[i]
-                    pdb.set_trace()
                     _, loss_i = inference(x_batch_i, y_batch_i, is_training)
                     tower_losses.append(loss_i)
+                    with tf.Session() as sess:
+                        sess.run(tf.global_variables_initializer())
                     tf.get_variable_scope().reuse_variables()
                     grad_i=optimizer.compute_gradients(loss_i)
                     tower_grads.append(grad_i)

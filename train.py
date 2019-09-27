@@ -9,6 +9,7 @@ from email.policy import default
 from tensorflow.python.framework.errors_impl import OutOfRangeError
 from tqdm import tqdm
 from utils import misc
+from tensorflow.python.client import device_lib
 import pdb
 
 def parseArguments():
@@ -55,10 +56,31 @@ def inference(x_batch, y_batch, is_training):
     loss=cross_entropy_loss+regularization_loss
     
     return pre_class, loss
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+def average_gradients(tower_grads): 
+    average_grads = []
+    for grad_and_vars in zip(*tower_grads):
+        grads = []
+        for g, _ in grad_and_vars:
+            if g is not None: 
+                expanded_g = tf.expand_dims(g, 0) 
+                grads.append(expanded_g)
+        if len(grads) ==0:
+            continue
+        grad = tf.concat(axis=0, values=grads)
+        grad = tf.reduce_mean(grad, 0)
+        v = grad_and_vars[0][1]
+        grad_and_var = (grad, v)
+        average_grads.append(grad_and_var)
+    return average_grads
     
 def main():
     is_training=True
-    
+    gpus=get_available_gpus()
     
     #init input
 #     with tf.variable_scope('input'):
@@ -70,12 +92,33 @@ def main():
     x_batch, y_batch= iterator.get_next()
     x_batch.set_shape((args.batch_size, args.height, args.width, 3))
     y_batch.set_shape((args.batch_size,))
+    x_batches=tf.split(x_batch, len(gpus))
+    y_batches=tf.split(y_batch, len(gpus))
     
-    pre_class, loss = inference(x_batch, y_batch, is_training)
+    _, loss = inference(x_batch, y_batch, is_training)
     saver = tf.train.Saver(max_to_keep=1)
     #start the train
     global_step=tf.train.get_or_create_global_step()
-    train_op=get_train_op(loss, global_step, learning_rate_placeholder)
+    optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
+    tower_losses=[]
+    tower_grads=[]
+    with tf.variable_scope(tf.get_variable_scope()):
+        for i, device in enumerate(range(len(gpus))):
+            with tf.device(device):
+                with tf.name_scope('tower_{}'.format(i)) as scope:
+                    x_batch_i=x_batches[i]
+                    y_batch_i=y_batches[i]
+                    _, loss_i = inference(x_batch_i, y_batch_i, is_training)
+                    tower_losses.append(loss_i)
+                    tf.get_variable_scope().reuse_variables()
+                    grad_i=optimizer.compute_gradients(loss)
+                    tower_grads.append(grad_i)
+    loss=tf.reduce_mean(tower_losses)
+    grads=average_gradients(tower_grads)
+    extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    with tf.control_dependencies(extra_update_ops):
+        train_op = optimizer.apply_gradients(grads, global_step)
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
@@ -130,8 +173,10 @@ def get_dataset(args):
         labels.extend([i]*len(file_names))
     dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels)).shuffle(buffer_size=len(img_paths))
     dataset=dataset.map(parse_dataset,num_parallel_calls=args.preprocess_multi_thread_num)
-    dataset=dataset.batch(args.batch_size)
-    return dataset, len(img_paths)//args.batch_size
+    gpus=get_available_gpus()
+    batch_size=len(gpus)*args.batch_size
+    dataset=dataset.batch(batch_size)
+    return dataset, len(img_paths)//batch_size
 
 def get_val_dataset(args):
     with open(args.val_label_file) as f:

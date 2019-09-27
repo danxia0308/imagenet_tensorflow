@@ -182,6 +182,7 @@ def get_val_dataset(args):
     with open(args.val_label_file) as f:
         content=f.read()
         labels=content.split('\n')
+    pdb.set_trace()
     names=os.listdir(args.val_img_dir)
     names.sort()
     dataset = tf.data.Dataset.from_tensor_slices((names,labels))

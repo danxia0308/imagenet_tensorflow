@@ -109,8 +109,6 @@ def main():
                     y_batch_i=y_batches[i]
                     _, loss_i = inference(x_batch_i, y_batch_i, is_training)
                     tower_losses.append(loss_i)
-                    with tf.Session() as sess:
-                        sess.run(tf.global_variables_initializer())
                     tf.get_variable_scope().reuse_variables()
                     grad_i=optimizer.compute_gradients(loss_i)
                     tower_grads.append(grad_i)

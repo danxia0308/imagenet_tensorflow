@@ -94,8 +94,7 @@ def main():
     y_batch.set_shape((args.batch_size,))
     x_batches=tf.split(x_batch, len(gpus))
     y_batches=tf.split(y_batch, len(gpus))
-    
-    saver = tf.train.Saver(max_to_keep=1)
+
     #start the train
     global_step=tf.train.get_or_create_global_step()
     optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
@@ -117,7 +116,9 @@ def main():
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(extra_update_ops):
         train_op = optimizer.apply_gradients(grads, global_step)
-
+        
+    saver = tf.train.Saver(max_to_keep=1)
+    
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)

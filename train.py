@@ -47,7 +47,7 @@ def inference(x_batch, y_batch, is_training):
         'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
     }
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                         trainable=is_training, reuse=None)
+                         trainable=is_training, reuse=tf.AUTO_REUSE)
 
     #build the loss
     ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch,logits=net)

@@ -101,7 +101,7 @@ def main():
     tower_losses=[]
     tower_grads=[]
     with tf.variable_scope(tf.get_variable_scope()):
-        for i, device in enumerate(range(len(gpus))):
+        for i, device in enumerate(gpus):
             with tf.device(device):
                 with tf.name_scope('tower_{}'.format(i)) as scope:
                     x_batch_i=x_batches[i]

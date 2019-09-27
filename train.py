@@ -27,6 +27,7 @@ def parseArguments():
     parser.add_argument('--val_label_file', default='/home/nemo/imagenet/ILSVRC2012_validation_ground_truth.txt')
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
     parser.add_argument('--need_resize', default=False)
+    parser.add_argument('--preprocess_multi_thread_num', default=8)
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
@@ -128,7 +129,7 @@ def get_dataset(args):
         img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
     dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels)).shuffle(buffer_size=len(img_paths))
-    dataset=dataset.map(parse_dataset)
+    dataset=dataset.map(parse_dataset,num_parallel_calls=self.args.preprocess_multi_thread_num)
     dataset=dataset.batch(args.batch_size)
     return dataset, len(img_paths)//args.batch_size
 

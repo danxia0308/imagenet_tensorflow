@@ -95,7 +95,6 @@ def main():
     x_batches=tf.split(x_batch, len(gpus))
     y_batches=tf.split(y_batch, len(gpus))
     
-    _, loss = inference(x_batch, y_batch, is_training)
     saver = tf.train.Saver(max_to_keep=1)
     #start the train
     global_step=tf.train.get_or_create_global_step()

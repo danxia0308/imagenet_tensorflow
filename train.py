@@ -37,6 +37,12 @@ def inference(x_batch, is_training):
     net = slim.flatten(encoder.stage4)
     net = slim.dropout(net, args.dropout, is_training=is_training)
     #weights_initializer=slim.l2_regularizer(args.weight_decay)
+    batch_norm_params = {
+        'decay': 0.995,
+        'epsilon': 0.001,
+        'updates_collections': None,
+        'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
+    }
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
                          trainable=is_training)
     #build the loss
@@ -50,12 +56,7 @@ def inference(x_batch, is_training):
     
 def main():
     is_training=True
-    batch_norm_params = {
-        'decay': 0.995,
-        'epsilon': 0.001,
-        'updates_collections': None,
-        'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
-    }
+    
     
     #init input
 #     with tf.variable_scope('input'):

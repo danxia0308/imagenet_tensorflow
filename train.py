@@ -113,7 +113,6 @@ def parse_dataset(image_path, label):
         image=tf.image.decode_jpeg(image_string,channels=3)
     else:
         image=tf.image.decode_png(image_string,channels=3)
-    pdb.set_trace()
     if args.need_resize == True:
         image=tf.image.resize_images(image, (args.height,args.width))
     image = tf.cast(image,tf.uint8)

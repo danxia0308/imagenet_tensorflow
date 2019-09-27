@@ -106,6 +106,7 @@ def main():
                 with tf.name_scope('tower_{}'.format(i)) as scope:
                     x_batch_i=x_batches[i]
                     y_batch_i=y_batches[i]
+                    pdb.set_trace()
                     _, loss_i = inference(x_batch_i, y_batch_i, is_training)
                     tower_losses.append(loss_i)
                     tf.get_variable_scope().reuse_variables()

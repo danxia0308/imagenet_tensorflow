@@ -26,6 +26,7 @@ def parseArguments():
     parser.add_argument('--val_img_dir', default='/home/nemo/imagenet/imagenet_val/')
     parser.add_argument('--val_label_file', default='/home/nemo/imagenet/ILSVRC2012_validation_ground_truth.txt')
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
+    parser.add_argument('--need_resize', default=False)
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
@@ -111,10 +112,11 @@ def parse_dataset(image_path, label):
         image=tf.image.decode_jpeg(image_string,channels=3)
     else:
         image=tf.image.decode_png(image_string,channels=3)
-    image_resized=tf.image.resize_images(image, (args.height,args.width))
-    image_resized = tf.cast(image_resized,tf.uint8)
+    if args.need_resize == True:
+        image=tf.image.resize_images(image, (args.height,args.width))
+    image = tf.cast(image,tf.uint8)
     label = tf.cast(label, tf.int32)
-    return image_resized, label
+    return image, label
 
 def get_dataset(args):
     img_paths=[]

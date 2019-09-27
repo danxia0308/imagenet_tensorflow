@@ -75,6 +75,7 @@ def main():
     global_step=tf.train.get_or_create_global_step()
     train_op=get_train_op(loss, global_step, learning_rate_placeholder)
     with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
         if save_path != None:
             print('restore from {}'.format(save_path))

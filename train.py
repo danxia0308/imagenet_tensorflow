@@ -26,7 +26,7 @@ def parseArguments():
     parser.add_argument('--val_img_dir', default='/home/nemo/imagenet/imagenet_val/')
     parser.add_argument('--val_label_file', default='/home/nemo/imagenet/ILSVRC2012_validation_ground_truth.txt')
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
-    parser.add_argument('--need_resize', default=False)
+    parser.add_argument('--need_resize', default=False, type=bool)
     parser.add_argument('--preprocess_multi_thread_num', default=8)
     return parser.parse_args(sys.argv[1:]) 
 

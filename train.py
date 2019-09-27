@@ -124,9 +124,9 @@ def get_dataset(args):
         file_names=os.listdir(os.path.join(args.img_dir,class_name))
         img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
-    dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels))
+    dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels)).shuffle(buffer_size=len(img_paths))
     dataset=dataset.map(parse_dataset)
-    dataset=dataset.shuffle(buffer_size=len(img_paths)).batch(args.batch_size)
+    dataset=dataset.batch(args.batch_size)
     return dataset, len(img_paths)//args.batch_size
 
 def get_val_dataset(args):

@@ -118,13 +118,14 @@ def main():
         for i, device in enumerate(gpus):
             with tf.device(device):
                 with tf.name_scope('tower_{}'.format(i)) as scope:
-                    x_batch_i=x_batches[i]
-                    y_batch_i=y_batches[i]
-                    _, loss_i = inference(x_batch_i, y_batch_i, is_training)
-                    tower_losses.append(loss_i)
-                    tf.get_variable_scope().reuse_variables()
-                    grad_i=optimizer.compute_gradients(loss_i)
-                    tower_grads.append(grad_i)
+                    with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
+                        x_batch_i=x_batches[i]
+                        y_batch_i=y_batches[i]
+                        _, loss_i = inference(x_batch_i, y_batch_i, is_training)
+                        tower_losses.append(loss_i)
+                        tf.get_variable_scope().reuse_variables()
+                        grad_i=optimizer.compute_gradients(loss_i)
+                        tower_grads.append(grad_i)
     loss=tf.reduce_mean(tower_losses)
     grads=average_gradients(tower_grads)
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

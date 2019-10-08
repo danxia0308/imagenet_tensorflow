@@ -29,7 +29,7 @@ def parseArguments():
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
     parser.add_argument('--need_resize', default=False, type=bool)
     parser.add_argument('--preprocess_multi_thread_num', default=8, type=int)
-    parser.add_argument('--gpu_num', default='0')
+    parser.add_argument('--gpu_num', default='0,1')
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
@@ -48,7 +48,12 @@ def inference(x_batch, y_batch, is_training):
         'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
     }
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                         trainable=is_training)
+                         trainable=is_training, scope='Bottleneck', reuse=False)
+#     net = slim.fully_connected(net, bottleneck_layer_size, activation_fn=None, 
+#                         scope='Bottleneck', reuse=False)
+#     weight = slim.model_variable('fc_weight', shape = [FLAGS.embedding_size, nrof_classes], regularizer = slim.l2_regularizer(FLAGS.weight_decay), initializer = tf.contrib.layers.xavier_initializer(uniform=False), device='/cpu:0')
+#     weight_n = tf.nn.l2_normalize(weight, 0, 1e-10, name='fc_weight_n') 
+#     old_logits = tf.matmul(net, weight_n, name='old_logit')
 
     #build the loss
     ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch,logits=net)

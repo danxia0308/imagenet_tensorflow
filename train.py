@@ -87,8 +87,8 @@ def average_gradients(tower_grads):
     
 def main():
     is_training=True
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_num
+#     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_num
     gpus=get_available_gpus()
     
     #init input

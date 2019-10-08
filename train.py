@@ -38,20 +38,21 @@ def inference(x_batch, y_batch, is_training):
     #build the network
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
-    net = slim.flatten(encoder.stage4, scope='flatten')
-    print(net,net.op.name, net.shape.as_list())
-    net = slim.dropout(net, args.dropout, is_training=is_training, scope='Dropout')
-    print(net,net.op.name, net.shape.as_list())
-    #weights_initializer=slim.l2_regularizer(args.weight_decay)
-    batch_norm_params = {
-        'decay': 0.995,
-        'epsilon': 0.001,
-        'updates_collections': None,
-        'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
-    }
-    net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                         trainable=is_training, scope='Bottleneck')#, reuse=False)
-    print(net,net.op.name, net.shape.as_list())
+    with tf.variable_scope('final', reuse=False):
+        net = slim.flatten(encoder.stage4, scope='flatten')
+        print(net,net.op.name, net.shape.as_list())
+        net = slim.dropout(net, args.dropout, is_training=is_training, scope='Dropout')
+        print(net,net.op.name, net.shape.as_list())
+        #weights_initializer=slim.l2_regularizer(args.weight_decay)
+        batch_norm_params = {
+            'decay': 0.995,
+            'epsilon': 0.001,
+            'updates_collections': None,
+            'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
+        }
+        net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
+                             trainable=is_training, scope='Bottleneck')#, reuse=False)
+        print(net,net.op.name, net.shape.as_list())
 #     net = slim.fully_connected(net, bottleneck_layer_size, activation_fn=None, 
 #                         scope='Bottleneck', reuse=False)
 #     weight = slim.model_variable('fc_weight', shape = [FLAGS.embedding_size, nrof_classes], regularizer = slim.l2_regularizer(FLAGS.weight_decay), initializer = tf.contrib.layers.xavier_initializer(uniform=False), device='/cpu:0')

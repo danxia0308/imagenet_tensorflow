@@ -153,6 +153,8 @@ def main():
                 
 def validate(sess):
     dataset, batch_num = get_val_dataset(args)
+    iterator=dataset.make_initializable_iterator()
+    sess.run(iterator.initializer)
     labels=[]
     pres=[]
     x_batch, y_batch = iterator.get_next()

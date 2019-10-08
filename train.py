@@ -39,7 +39,9 @@ def inference(x_batch, y_batch, is_training):
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
     net = slim.flatten(encoder.stage4)
+    print(net.op.name, net.shape.as_list())
     net = slim.dropout(net, args.dropout, is_training=is_training)
+    print(net.op.name, net.shape.as_list())
     #weights_initializer=slim.l2_regularizer(args.weight_decay)
     batch_norm_params = {
         'decay': 0.995,

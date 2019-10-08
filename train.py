@@ -89,6 +89,7 @@ def main():
     is_training=True
 #     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 #     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_num
+    config = tf.ConfigProto(log_device_placement=False, allow_soft_placement=True)
     gpus=get_available_gpus()
     
     #init input
@@ -128,7 +129,7 @@ def main():
         
     saver = tf.train.Saver(max_to_keep=1)
     
-    with tf.Session() as sess:
+    with tf.Session(config=config) as sess:
         sess.run(tf.global_variables_initializer())
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
         if save_path != None:

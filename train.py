@@ -19,7 +19,7 @@ def parseArguments():
     parser.add_argument('--batch_size',default=64, type=int)
     parser.add_argument('--dropout',default=0.8,type=float)
     parser.add_argument('--weight_decay',default=5e4,type=float)
-    parser.add_argument('--img_dir',default='/home/nemo/imagenet/imagenet_train/')
+    parser.add_argument('--img_dir',default='/home/nemo/imagenet/imagenet_train_128/')
     parser.add_argument('--num_epochs',default=300, type=int)
     parser.add_argument('--save_every',default=1, type=int)
     parser.add_argument('--validate_every',default=1, type=int)
@@ -51,6 +51,7 @@ def inference(x_batch, y_batch, is_training):
     }
     net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
                          trainable=is_training, scope='Bottleneck', reuse=False)
+    print(net.op.name, net.shape.as_list())
 #     net = slim.fully_connected(net, bottleneck_layer_size, activation_fn=None, 
 #                         scope='Bottleneck', reuse=False)
 #     weight = slim.model_variable('fc_weight', shape = [FLAGS.embedding_size, nrof_classes], regularizer = slim.l2_regularizer(FLAGS.weight_decay), initializer = tf.contrib.layers.xavier_initializer(uniform=False), device='/cpu:0')

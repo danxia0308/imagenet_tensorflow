@@ -38,7 +38,7 @@ def inference(x_batch, y_batch, is_training):
     #build the network
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
-    net = slim.flatten(encoder.stage4)
+    net = slim.flatten(encoder.stage4, scope='flatten')
     print(net,net.op.name, net.shape.as_list())
     net = slim.dropout(net, args.dropout, is_training=is_training, scope='Dropout')
     print(net,net.op.name, net.shape.as_list())

@@ -29,6 +29,7 @@ def parseArguments():
     parser.add_argument('--checkpoint_dir', default='./checkpoints')
     parser.add_argument('--need_resize', default=False, type=bool)
     parser.add_argument('--preprocess_multi_thread_num', default=8, type=int)
+    parser.add_argument('--gpu_num', default='0')
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
@@ -81,6 +82,8 @@ def average_gradients(tower_grads):
     
 def main():
     is_training=True
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_num
     gpus=get_available_gpus()
     
     #init input

@@ -202,7 +202,7 @@ def get_val_dataset(args):
     names.sort()
     dataset = tf.data.Dataset.from_tensor_slices((names,labels))
     dataset = dataset.map(parse_dataset).batch(args.batch_size)
-    return dataset, len(img_paths)//args.batch_size
+    return dataset, len(names)//args.batch_size
     
     
 

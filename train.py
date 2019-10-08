@@ -40,7 +40,7 @@ def inference(x_batch, y_batch, is_training):
     encoder.build()
     net = slim.flatten(encoder.stage4)
     print(net.op.name, net.shape.as_list())
-    net = slim.dropout(net, args.dropout, is_training=is_training)
+    net = slim.dropout(net, args.dropout, is_training=is_training, scope='Dropout')
     print(net.op.name, net.shape.as_list())
     #weights_initializer=slim.l2_regularizer(args.weight_decay)
     batch_norm_params = {

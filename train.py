@@ -151,7 +151,7 @@ def main():
                 
 def validate(sess,train_placeholder, test_input_placeholder, pred_class):
     labels, paths = get_val_data(args)
-    batch_num=len(names)//args.batch_size
+    batch_num=len(paths)//args.batch_size
     pres=[]
     x_batch=[]
     for i in tqdm(range(batch_num)):

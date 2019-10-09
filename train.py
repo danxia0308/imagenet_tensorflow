@@ -34,7 +34,7 @@ def parseArguments():
 
 args=parseArguments()
 
-def inference(x_batch, y_batch, is_training):
+def inference(x_batch, is_training):
     #build the network
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
@@ -52,20 +52,9 @@ def inference(x_batch, y_batch, is_training):
         }
         net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, scope='Bottleneck')#, reuse=False)
         print(net,net.op.name, net.shape.as_list())
-#     net = slim.fully_connected(net, bottleneck_layer_size, activation_fn=None, 
-#                         scope='Bottleneck', reuse=False)
-#     weight = slim.model_variable('fc_weight', shape = [FLAGS.embedding_size, nrof_classes], regularizer = slim.l2_regularizer(FLAGS.weight_decay), initializer = tf.contrib.layers.xavier_initializer(uniform=False), device='/cpu:0')
-#     weight_n = tf.nn.l2_normalize(weight, 0, 1e-10, name='fc_weight_n') 
-#     old_logits = tf.matmul(net, weight_n, name='old_logit')
-
-    #build the loss
-    ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch,logits=net)
-    pre_class=tf.argmax(ce, axis=1)
-    cross_entropy_loss=tf.reduce_mean(ce)
-    regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
-    loss=cross_entropy_loss+regularization_loss
+    pre_class=tf.argmax(net, axis=1)
     
-    return pre_class, loss
+    return pre_class, net
 
 def get_available_gpus():
     local_device_protos = device_lib.list_local_devices()
@@ -89,7 +78,6 @@ def average_gradients(tower_grads):
     return average_grads
     
 def main():
-    is_training=True
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_num
     config = tf.ConfigProto(log_device_placement=False, allow_soft_placement=True)
@@ -101,6 +89,7 @@ def main():
 #         y_label=tf.placeholder(dtype=tf.int32, shape=[args.batch_size], name='y_label')
     learning_rate_placeholder = tf.placeholder(dtype=tf.float32, name='learning_rate')
     train_placeholder = tf.placeholder(dtype=tf.bool, name='train_phase')
+    test_input_placeholder = tf.placeholder(dtype=tf.float32, name="test_input", shape=[None,args.height, args.width, 3])
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=dataset.make_initializable_iterator()
     x_batch, y_batch= iterator.get_next()
@@ -121,11 +110,18 @@ def main():
                     with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
                         x_batch_i=x_batches[i]
                         y_batch_i=y_batches[i]
-                        _, loss_i = inference(x_batch_i, y_batch_i, train_placeholder)
+                        _,  net= inference(x_batch_i, train_placeholder)
+                        #build the loss
+                        ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch_i,logits=net)
+                        cross_entropy_loss=tf.reduce_mean(ce)
+                        regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+                        loss_i=cross_entropy_loss+regularization_loss
                         tower_losses.append(loss_i)
                         tf.get_variable_scope().reuse_variables()
                         grad_i=optimizer.compute_gradients(loss_i)
                         tower_grads.append(grad_i)
+                    if i==0:
+                        pred_class, _ = inference(test_input_placeholder, train_placeholder)
     loss=tf.reduce_mean(tower_losses)
     grads=average_gradients(tower_grads)
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -147,20 +143,19 @@ def main():
             for i in tqdm(range(batch_num_one_epoch)):
                 sess.run(train_op, feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True})
             if i % args.validate_every == 0:
-                validate(sess,train_placeholder)
+                validate(sess,train_placeholder, test_input_placeholder, pred_class)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
-def validate(sess,train_placeholder):
+def validate(sess,train_placeholder, test_input_placeholder, pred_class):
     dataset, batch_num = get_val_dataset(args)
     iterator=dataset.make_initializable_iterator()
     sess.run(iterator.initializer)
     labels=[]
     pres=[]
     x_batch, y_batch = iterator.get_next()
-    pre_class, _ = inference(x_batch, y_batch, train_placeholder)
     for i in tqdm(range(batch_num)):
-        pre = sess.run(pre_class, feed_dict={train_placeholder:False})
+        pre = sess.run(pred_class, feed_dict={train_placeholder:False, test_input_placeholder:x_batch})
         pres.extend(pre)
         labels.extend(y_batch)
     tp=np.sum(np.where(lables-pres==0,1,0))

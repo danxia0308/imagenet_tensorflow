@@ -151,6 +151,8 @@ def main():
                 
 def validate(sess,train_placeholder, test_input_placeholder, pred_class):
     labels, paths = get_val_data(args)
+    labels=labels[:500]
+    paths=paths[:500]
     batch_num=len(paths)//args.batch_size
     pres=[]
     x_batch=[]

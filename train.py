@@ -101,6 +101,7 @@ def main():
 #         x_pl=tf.placeholder(dtype=tf.uint8, shape=[args.batch_size, args.height, args.width, 3], name='x_pl')
 #         y_label=tf.placeholder(dtype=tf.int32, shape=[args.batch_size], name='y_label')
     learning_rate_placeholder = tf.placeholder(dtype=tf.float32, name='learning_rate')
+    train_placeholder = tf.placeholder(dtype=tf.bool, name='train_phase')
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=dataset.make_initializable_iterator()
     x_batch, y_batch= iterator.get_next()
@@ -121,7 +122,7 @@ def main():
                     with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
                         x_batch_i=x_batches[i]
                         y_batch_i=y_batches[i]
-                        _, loss_i = inference(x_batch_i, y_batch_i, is_training)
+                        _, loss_i = inference(x_batch_i, y_batch_i, train_placeholder)
                         tower_losses.append(loss_i)
                         tf.get_variable_scope().reuse_variables()
                         grad_i=optimizer.compute_gradients(loss_i)
@@ -145,13 +146,13 @@ def main():
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
             
             for i in tqdm(range(batch_num_one_epoch)):
-                sess.run(train_op, feed_dict={learning_rate_placeholder:learning_rate})
+                sess.run(train_op, feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True})
             if i % args.validate_every == 0:
-                validate(sess)
+                validate(sess,train_placeholder)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
-def validate(sess):
+def validate(sess,train_placeholder):
     dataset, batch_num = get_val_dataset(args)
     iterator=dataset.make_initializable_iterator()
     sess.run(iterator.initializer)
@@ -160,7 +161,7 @@ def validate(sess):
     x_batch, y_batch = iterator.get_next()
     pre_class, _ = inference(x_batch, y_batch, False)
     for i in tqdm(range(batch_num)):
-        pre = sess.run(pre_class)
+        pre = sess.run(pre_class, feed_dict={train_placeholder:False})
         pres.extend(pre)
         labels.extend(y_batch)
     tp=np.sum(np.where(lables-pres==0,1,0))

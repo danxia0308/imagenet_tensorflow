@@ -50,8 +50,7 @@ def inference(x_batch, y_batch, is_training):
             'updates_collections': None,
             'variables_collections': [ tf.GraphKeys.TRAINABLE_VARIABLES ],
         }
-        net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, 
-                             trainable=is_training, scope='Bottleneck')#, reuse=False)
+        net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, scope='Bottleneck')#, reuse=False)
         print(net,net.op.name, net.shape.as_list())
 #     net = slim.fully_connected(net, bottleneck_layer_size, activation_fn=None, 
 #                         scope='Bottleneck', reuse=False)

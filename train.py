@@ -11,7 +11,7 @@ from tqdm import tqdm
 from utils import misc
 from tensorflow.python.client import device_lib
 import pdb
-import imageio
+import numpy as np
 import cv2 as cv
 
 def parseArguments():

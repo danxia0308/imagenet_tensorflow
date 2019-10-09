@@ -120,8 +120,8 @@ def main():
                         tf.get_variable_scope().reuse_variables()
                         grad_i=optimizer.compute_gradients(loss_i)
                         tower_grads.append(grad_i)
-#                     if i==0:
-#                         pred_class, _ = inference(test_input_placeholder, train_placeholder)
+                    if i==0:
+                        pred_class, _ = inference(test_input_placeholder, train_placeholder)
     loss=tf.reduce_mean(tower_losses)
     grads=average_gradients(tower_grads)
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

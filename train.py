@@ -159,7 +159,7 @@ def validate(sess,train_placeholder):
     labels=[]
     pres=[]
     x_batch, y_batch = iterator.get_next()
-    pre_class, _ = inference(x_batch, y_batch, False)
+    pre_class, _ = inference(x_batch, y_batch, train_placeholder)
     for i in tqdm(range(batch_num)):
         pre = sess.run(pre_class, feed_dict={train_placeholder:False})
         pres.extend(pre)

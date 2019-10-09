@@ -89,7 +89,7 @@ def main():
 #         y_label=tf.placeholder(dtype=tf.int32, shape=[args.batch_size], name='y_label')
     learning_rate_placeholder = tf.placeholder(dtype=tf.float32, name='learning_rate')
     train_placeholder = tf.placeholder(dtype=tf.bool, name='train_phase')
-    test_input_placeholder = tf.placeholder(dtype=tf.float32, name="test_input", shape=[None,args.height, args.width, 3])
+    test_input_placeholder = tf.placeholder(dtype=tf.uint8, name="test_input", shape=[None,args.height, args.width, 3])
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=dataset.make_initializable_iterator()
     x_batch, y_batch= iterator.get_next()

@@ -139,9 +139,9 @@ def main():
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
-            
+            feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True}
             for i in tqdm(range(batch_num_one_epoch)):
-                sess.run(train_op, feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True})
+                sess.run(train_op, feed_dict=feed_dict)
 #             if i % args.validate_every == 0:
 #                 validate(sess,train_placeholder, test_input_placeholder, pred_class)
             if i % args.save_every == 0:

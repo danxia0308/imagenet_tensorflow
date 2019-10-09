@@ -120,8 +120,8 @@ def main():
                         tf.get_variable_scope().reuse_variables()
                         grad_i=optimizer.compute_gradients(loss_i)
                         tower_grads.append(grad_i)
-                    if i==0:
-                        pred_class, _ = inference(test_input_placeholder, train_placeholder)
+#                     if i==0:
+#                         pred_class, _ = inference(test_input_placeholder, train_placeholder)
     loss=tf.reduce_mean(tower_losses)
     grads=average_gradients(tower_grads)
     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -142,8 +142,8 @@ def main():
             
             for i in tqdm(range(batch_num_one_epoch)):
                 sess.run(train_op, feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True})
-            if i % args.validate_every == 0:
-                validate(sess,train_placeholder, test_input_placeholder, pred_class)
+#             if i % args.validate_every == 0:
+#                 validate(sess,train_placeholder, test_input_placeholder, pred_class)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 

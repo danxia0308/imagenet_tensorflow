@@ -126,9 +126,9 @@ def main():
                         pred_class, _ = inference(test_input_placeholder, train_placeholder)
     loss=tf.reduce_mean(tower_losses)
     grads=average_gradients(tower_grads)
-    extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-    with tf.control_dependencies(extra_update_ops):
-        train_op = optimizer.apply_gradients(grads, global_step)
+#     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+#     with tf.control_dependencies(extra_update_ops):
+    train_op = optimizer.apply_gradients(grads, global_step)
         
     saver = tf.train.Saver(max_to_keep=1)
     

@@ -199,6 +199,7 @@ def get_val_dataset(args):
     with open(args.val_label_file) as f:
         content=f.read()
         labels=content.split('\n')[:-1]
+        labels=[int(str) for str in labels]
 #     pdb.set_trace()
     names=os.listdir(args.val_img_dir)
     names.sort()

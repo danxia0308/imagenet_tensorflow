@@ -11,6 +11,8 @@ from tqdm import tqdm
 from utils import misc
 from tensorflow.python.client import device_lib
 import pdb
+import imageio
+import cv2 as cv
 
 def parseArguments():
     parser=argparse.ArgumentParser()
@@ -148,16 +150,18 @@ def main():
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
 def validate(sess,train_placeholder, test_input_placeholder, pred_class):
-    dataset, batch_num = get_val_dataset(args)
-    iterator=dataset.make_initializable_iterator()
-    sess.run(iterator.initializer)
-    labels=[]
+    labels, paths = get_val_data(args)
+    batch_num=len(names)//args.batch_size
     pres=[]
-    x_batch, y_batch = iterator.get_next()
+    x_batch=[]
     for i in tqdm(range(batch_num)):
+        path_batch=paths[i*args.batch_size:(i+1)*args.batch_size]
+        for path in path_batch:
+            img=cv.imread(path)
+            img=img[...,::-1]
+            x_batch.append(img)
         pre = sess.run(pred_class, feed_dict={train_placeholder:False, test_input_placeholder:x_batch})
         pres.extend(pre)
-        labels.extend(y_batch)
     tp=np.sum(np.where(lables-pres==0,1,0))
     acc=tp/(batch_num*args.batch_size)
     print('acc={}'.format(acc))
@@ -190,17 +194,15 @@ def get_dataset(args):
     dataset=dataset.batch(batch_size)
     return dataset, len(img_paths)//batch_size
 
-def get_val_dataset(args):
+def get_val_data(args):
     with open(args.val_label_file) as f:
         content=f.read()
         labels=content.split('\n')[:-1]
         labels=[int(str) for str in labels]
-#     pdb.set_trace()
     names=os.listdir(args.val_img_dir)
     names.sort()
-    dataset = tf.data.Dataset.from_tensor_slices((names,labels))
-    dataset = dataset.map(parse_dataset).batch(args.batch_size)
-    return dataset, len(names)//args.batch_size
+    paths=[os.path.join(args.val_img_dir,name) for name in names]
+    return labels, paths
     
     
 

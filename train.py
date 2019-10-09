@@ -155,8 +155,8 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class):
     paths=paths[:500]
     batch_num=len(paths)//args.batch_size
     pres=[]
-    x_batch=[]
     for i in tqdm(range(batch_num)):
+        x_batch=[]
         path_batch=paths[i*args.batch_size:(i+1)*args.batch_size]
         for path in path_batch:
             img=cv.imread(path)

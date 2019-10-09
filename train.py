@@ -28,7 +28,7 @@ def parseArguments():
     parser.add_argument('--learning_rate_file', default='./data/learning_rate.txt')
     parser.add_argument('--val_img_dir', default='/home/nemo/imagenet/imagenet_val_128/')
     parser.add_argument('--val_label_file', default='/home/nemo/imagenet/ILSVRC2012_validation_ground_truth.txt')
-    parser.add_argument('--checkpoint_dir', default='./checkpoints')
+    parser.add_argument('--checkpoint_dir', default='./checkpoints/')
     parser.add_argument('--need_resize', default=False, type=bool)
     parser.add_argument('--preprocess_multi_thread_num', default=8, type=int)
     parser.add_argument('--gpu_num', default='0,1')

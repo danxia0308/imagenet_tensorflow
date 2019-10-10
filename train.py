@@ -206,7 +206,7 @@ def get_val_data_from_train_data():
         file_names=os.listdir(os.path.join(args.img_dir,class_name))
         img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
-    return labels, paths
+    return labels, img_paths
 
 def get_val_data(args):
     with open(args.val_label_file) as f:

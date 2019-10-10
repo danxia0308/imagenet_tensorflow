@@ -203,6 +203,7 @@ def get_dataset(args):
     gpus=get_available_gpus()
     batch_size=len(gpus)*args.batch_size
     dataset=dataset.batch(batch_size)
+    print("Dataset Size={}".format(len(img_paths)))
     return dataset, len(img_paths)//batch_size
 
 def get_val_data_from_train_data():

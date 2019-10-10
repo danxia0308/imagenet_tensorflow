@@ -5,10 +5,10 @@ from tqdm import tqdm
 import pdb
 
 def crop_train_img():
-    base_dir='/data/sophie_bak/'
+    base_dir='/home/nemo/imagenet/'
     img_dir=os.path.join(base_dir,'imagenet_train')
     bbox_path=os.path.join(base_dir,'bbox_infos.npy')
-    dst_img_dir='/data/sophie_bak/imagenet_train_crop'
+    dst_img_dir='/home/nemo/imagenet/imagenet_train_crop'
     bbox_dict=np.load(bbox_path).item()
     dirs=os.listdir(img_dir)
     dirs.sort()
@@ -50,4 +50,14 @@ def crop_train_img():
                 print(e)
 
 crop_train_img()
+
+def test():
+    path='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos_final.npy'
+    bbox_infos=np.load(path)
+    print(len(bbox_infos.item().keys()))
+    path='/Users/chendanxia/sophie/segmentation_img_set/imagenet/bbox_infos_all.npy'
+    bbox_infos=np.load(path)
+    print(len(bbox_infos.item().keys()))
+
+# test()
     

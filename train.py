@@ -168,7 +168,6 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class):
             x_batch.append(img)
         pre = sess.run(pred_class, feed_dict={train_placeholder:False, test_input_placeholder:x_batch})
         pres.extend(pre)
-    pdb.set_trace()
     tp=np.sum(np.where(np.array(labels[:len(pres)])-np.array(pres)==0,1,0))
     acc=tp/(batch_num*args.batch_size)
     print('acc={}'.format(acc))

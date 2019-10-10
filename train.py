@@ -195,6 +195,7 @@ def get_dataset(args):
         img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
     dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels)).shuffle(buffer_size=len(img_paths))
+    pdb.set_trace()
     dataset=dataset.map(parse_dataset,num_parallel_calls=args.preprocess_multi_thread_num)
     gpus=get_available_gpus()
     batch_size=len(gpus)*args.batch_size

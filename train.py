@@ -94,9 +94,11 @@ def main():
     test_input_placeholder = tf.placeholder(dtype=tf.uint8, name="test_input", shape=[None,args.height, args.width, 3])
     dataset, batch_num_one_epoch=get_dataset(args)
     iterator=dataset.make_initializable_iterator()
-    x_batch, y_batch= iterator.get_next()
+    x_batch, y_batch, image_path_batch= iterator.get_next()
     x_batch.set_shape((args.batch_size, args.height, args.width, 3))
     y_batch.set_shape((args.batch_size,))
+    image_path_batch.set_shape((args.batch_size,))
+    image_path_batches=tf.split(image_path_batch, len(gpus))
     x_batches=tf.split(x_batch, len(gpus))
     y_batches=tf.split(y_batch, len(gpus))
 
@@ -112,6 +114,7 @@ def main():
                     with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
                         x_batch_i=x_batches[i]
                         y_batch_i=y_batches[i]
+                        image_path_batch_i=image_path_batches[i]
                         _,  net= inference(x_batch_i, train_placeholder)
                         #build the loss
                         ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch_i,logits=net)
@@ -183,7 +186,7 @@ def parse_dataset(image_path, label):
         image=tf.image.resize_images(image, (args.height,args.width))
     image = tf.cast(image,tf.uint8)
     label = tf.cast(label, tf.int32)
-    return image, label
+    return image, label, image_path
 
 def get_dataset(args):
     img_paths=[]
@@ -195,7 +198,6 @@ def get_dataset(args):
         img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
     dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels)).shuffle(buffer_size=len(img_paths))
-    pdb.set_trace()
     dataset=dataset.map(parse_dataset,num_parallel_calls=args.preprocess_multi_thread_num)
     gpus=get_available_gpus()
     batch_size=len(gpus)*args.batch_size

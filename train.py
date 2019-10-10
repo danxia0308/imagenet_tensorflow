@@ -142,15 +142,16 @@ def main():
             sess.run(iterator.initializer)
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
             feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True}
-            for i in tqdm(range(batch_num_one_epoch)):
-                sess.run(train_op, feed_dict=feed_dict)
+#             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
+#                 sess.run(train_op, feed_dict=feed_dict)
             if i % args.validate_every == 0:
                 validate(sess,train_placeholder, test_input_placeholder, pred_class)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
 def validate(sess,train_placeholder, test_input_placeholder, pred_class):
-    labels, paths = get_val_data(args)
+#     labels, paths = get_val_data(args)
+    labels, paths = get_val_data_from_train_data(args)
     labels=labels[:500]
     paths=paths[:500]
     batch_num=len(paths)//args.batch_size
@@ -195,6 +196,17 @@ def get_dataset(args):
     batch_size=len(gpus)*args.batch_size
     dataset=dataset.batch(batch_size)
     return dataset, len(img_paths)//batch_size
+
+def get_val_data_from_train_data():
+    img_paths=[]
+    labels=[]
+    class_names=os.listdir(args.img_dir)
+    class_names.sort()
+    for i, class_name in enumerate(class_names):
+        file_names=os.listdir(os.path.join(args.img_dir,class_name))
+        img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
+        labels.extend([i]*len(file_names))
+    return labels, paths
 
 def get_val_data(args):
     with open(args.val_label_file) as f:

@@ -142,9 +142,11 @@ def main():
             sess.run(iterator.initializer)
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
             feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True}
+            total_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
                 loss_result, _ = sess.run([loss,train_op], feed_dict=feed_dict)
-                print("loss={}".format(loss_result))
+                total_loss.append(loss_result)
+            print("loss={}".format(np.mean(total_loss)))
             if i % args.validate_every == 0:
                 validate(sess,train_placeholder, test_input_placeholder, pred_class)
             if i % args.save_every == 0:

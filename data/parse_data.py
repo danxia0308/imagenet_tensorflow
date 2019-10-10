@@ -12,6 +12,7 @@ def crop_train_img():
     bbox_dict=np.load(bbox_path).item()
     dirs=os.listdir(img_dir)
     dirs.sort()
+    dirs=dirs[::-1]
     for dir_name in tqdm(dirs):
         dir_path = os.path.join(img_dir,dir_name)
         dst_dir=os.path.join(dst_img_dir,dir_name)

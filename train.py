@@ -195,6 +195,7 @@ def get_dataset(args):
     class_names.sort()
     for i, class_name in enumerate(class_names):
         file_names=os.listdir(os.path.join(args.img_dir,class_name))
+        file_names.sort()
         img_paths.extend([os.path.join(args.img_dir,class_name,file_name) for file_name in file_names])
         labels.extend([i]*len(file_names))
     pdb.set_trace()

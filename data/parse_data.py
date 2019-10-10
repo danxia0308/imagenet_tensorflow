@@ -3,6 +3,7 @@ import os
 import imageio
 from tqdm import tqdm
 import pdb
+import random
 
 def crop_train_img():
     base_dir='/home/nemo/imagenet/'
@@ -13,6 +14,7 @@ def crop_train_img():
     dirs=os.listdir(img_dir)
     dirs.sort()
     dirs=dirs[::-1]
+    random.shuffle(dirs)
     for dir_name in tqdm(dirs):
         dir_path = os.path.join(img_dir,dir_name)
         dst_dir=os.path.join(dst_img_dir,dir_name)

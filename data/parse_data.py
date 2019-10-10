@@ -7,7 +7,7 @@ import pdb
 def crop_train_img():
     base_dir='/home/nemo/imagenet/'
     img_dir=os.path.join(base_dir,'imagenet_train')
-    bbox_path=os.path.join(base_dir,'bbox_infos.npy')
+    bbox_path=os.path.join(base_dir,'bbox_infos_final.npy')
     dst_img_dir='/home/nemo/imagenet/imagenet_train_crop'
     bbox_dict=np.load(bbox_path).item()
     dirs=os.listdir(img_dir)

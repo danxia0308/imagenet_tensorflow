@@ -144,6 +144,7 @@ def main():
             feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True}
             total_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
+                pdb.set_trace()
                 loss_result, _ = sess.run([loss,train_op], feed_dict=feed_dict)
                 total_loss.append(loss_result)
             print("loss={}".format(np.mean(total_loss)))

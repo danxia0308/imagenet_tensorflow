@@ -114,7 +114,7 @@ def main():
     with tf.variable_scope(tf.get_variable_scope()):
         pred_class,  net= inference(x_batch, train_placeholder)
         tf.get_variable_scope().reuse_variables()
-        pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
+#         pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
     match_result=tf.equal(pred_class, tf.cast(y_batch,tf.int64))
     match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
     acc=match_sum/args.batch_size
@@ -149,8 +149,8 @@ def main():
                 total_ce_loss.append(ce_loss)
                 total_re_loss.append(re_loss)
             print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
-            if i % args.validate_every == 0:
-                validate(sess,train_placeholder, test_input_placeholder, pred_class_test)
+#             if i % args.validate_every == 0:
+#                 validate(sess,train_placeholder, test_input_placeholder, pred_class_test)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 

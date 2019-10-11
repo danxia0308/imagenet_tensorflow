@@ -79,6 +79,7 @@ class AlexNet(object):
 
         # 6th Layer: Flatten -> FC (w ReLu) -> Dropout
         flattened = tf.reshape(pool5, [-1, 6*6*256])
+        
         fc6 = fc(flattened, 6*6*256, 4096, name='fc6')
         dropout6 = dropout(fc6, self.KEEP_PROB)
 
@@ -136,7 +137,7 @@ def conv(x, filter_height, filter_width, num_filters, stride_y, stride_x, name,
                                          strides=[1, stride_y, stride_x, 1],
                                          padding=padding)
 
-    with tf.variable_scope(name) as scope:
+    with tf.variable_scope(name, reuse=True) as scope:
         # Create tf variables for the weights and biases of the conv layer
         weights = tf.get_variable('weights', shape=[filter_height,
                                                     filter_width,

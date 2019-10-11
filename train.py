@@ -1,5 +1,6 @@
 import os
 from models.shufflenet import ShuffleNet
+from models.alexnet import AlexNet
 import tensorflow as tf
 import argparse
 import sys
@@ -36,7 +37,7 @@ def parseArguments():
 
 args=parseArguments()
 
-def inference(x_batch, is_training):
+def inference1(x_batch, is_training):
     #build the network
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
@@ -54,8 +55,14 @@ def inference(x_batch, is_training):
         }
         net=slim.fully_connected(net, 1000, normalizer_fn=slim.batch_norm, normalizer_params=batch_norm_params, scope='Bottleneck')#, reuse=False)
         print(net,net.op.name, net.shape.as_list())
+    pre_class=tf.argmax(net, axis=1)    
+    return pre_class, net
+
+def inferece(x_batch, is_training):
+    alexnet=AlexNet(x_batch,keep_prob=0.8, num_classes=1000, skip_layer=[])
+    alexnet.create()
+    net=alexnet.fc8
     pre_class=tf.argmax(net, axis=1)
-    
     return pre_class, net
 
 def get_available_gpus():

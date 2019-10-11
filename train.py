@@ -154,11 +154,15 @@ def main():
             feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True}
             print("lr={}".format(learning_rate))
             total_loss=[]
+            total_ce_loss=[]
+            total_re_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _,accuracy = sess.run([loss,train_op,acc], feed_dict=feed_dict)
+                loss_result, _,accuracy,ce_loss, re_loss = sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss], feed_dict=feed_dict)
                 total_loss.append(loss_result)
                 accuracys.append(accuracy)
-            print("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
+                total_ce_loss.append(ce_loss)
+                total_re_loss.append(re_loss)
+            print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
             if i % args.validate_every == 0:
                 validate(sess,train_placeholder, test_input_placeholder, pred_class_test)
             if i % args.save_every == 0:

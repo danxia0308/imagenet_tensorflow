@@ -107,6 +107,7 @@ def main():
     optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
     tower_losses=[]
     tower_grads=[]
+    accs=[]
     with tf.variable_scope(tf.get_variable_scope()):
         for i, device in enumerate(gpus):
             with tf.device(device):
@@ -115,7 +116,11 @@ def main():
                         x_batch_i=x_batches[i]
                         y_batch_i=y_batches[i]
                         image_path_batch_i=image_path_batches[i]
-                        _,  net= inference(x_batch_i, train_placeholder)
+                        pred_class,  net= inference(x_batch_i, train_placeholder)
+                        match_result=tf.equal(pred_class, y_batch_i)
+                        match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
+                        acc1=match_sum/args.batch_size
+                        accs.append(acc1)
                         #build the loss
                         ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch_i,logits=net)
                         cross_entropy_loss=tf.reduce_mean(ce)
@@ -126,9 +131,10 @@ def main():
                         grad_i=optimizer.compute_gradients(loss_i)
                         tower_grads.append(grad_i)
                     if i==0:
-                        pred_class, _ = inference(test_input_placeholder, train_placeholder)
+                        pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
     loss=tf.reduce_mean(tower_losses)
     grads=average_gradients(tower_grads)
+    acc=tf.reduce_mean(accs)
 #     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 #     with tf.control_dependencies(extra_update_ops):
     train_op = optimizer.apply_gradients(grads, global_step)
@@ -141,6 +147,7 @@ def main():
         if save_path != None:
             print('restore from {}'.format(save_path))
             saver.restore(sess, save_path)
+        accuracys=[]
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
@@ -148,11 +155,12 @@ def main():
             print("lr={}".format(learning_rate))
             total_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _ = sess.run([loss,train_op], feed_dict=feed_dict)
+                loss_result, _,accuracy = sess.run([loss,train_op,acc], feed_dict=feed_dict)
                 total_loss.append(loss_result)
-            print("loss={}".format(np.mean(total_loss)))
+                accuracys.append(accuracy)
+            print("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
             if i % args.validate_every == 0:
-                validate(sess,train_placeholder, test_input_placeholder, pred_class)
+                validate(sess,train_placeholder, test_input_placeholder, pred_class_test)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 

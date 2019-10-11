@@ -112,8 +112,9 @@ def main():
     global_step=tf.train.get_or_create_global_step()
     optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
     with tf.variable_scope(tf.get_variable_scope()):
-        pred_class,  net= inference(x_batch, train_placeholder)
         tf.get_variable_scope().reuse_variables()
+        pred_class,  net= inference(x_batch, train_placeholder)
+#         tf.get_variable_scope().reuse_variables()
 #         pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
     match_result=tf.equal(pred_class, tf.cast(y_batch,tf.int64))
     match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))

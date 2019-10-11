@@ -98,22 +98,47 @@ def main():
     x_batch.set_shape((args.batch_size, args.height, args.width, 3))
     y_batch.set_shape((args.batch_size,))
     image_path_batch.set_shape((args.batch_size,))
+    image_path_batches=tf.split(image_path_batch, len(gpus))
+    x_batches=tf.split(x_batch, len(gpus))
+    y_batches=tf.split(y_batch, len(gpus))
 
     #start the train
     global_step=tf.train.get_or_create_global_step()
     optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
-    pred_class,  net= inference(x_batch, train_placeholder)
-    pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
-    match_result=tf.equal(pred_class, tf.cast(y_batch,tf.int64))
-    match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
-    acc=match_sum/args.batch_size
-    #build the loss
-    ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch,logits=net)
-    cross_entropy_loss=tf.reduce_mean(ce)
-    regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
-    loss=cross_entropy_loss+regularization_loss
-    train_op=optimizer.minimize(loss, global_step)
-    
+    tower_losses=[]
+    tower_grads=[]
+    accs=[]
+    with tf.variable_scope(tf.get_variable_scope()):
+        for i, device in enumerate(gpus):
+            with tf.device(device):
+                with tf.name_scope('tower_{}'.format(i)) as scope:
+                    with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
+                        x_batch_i=x_batches[i]
+                        y_batch_i=y_batches[i]
+                        image_path_batch_i=image_path_batches[i]
+                        pred_class,  net= inference(x_batch_i, train_placeholder)
+                        match_result=tf.equal(pred_class, tf.cast(y_batch_i,tf.int64))
+                        match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
+                        acc1=match_sum/args.batch_size
+                        accs.append(acc1)
+                        #build the loss
+                        ce=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_batch_i,logits=net)
+                        cross_entropy_loss=tf.reduce_mean(ce)
+                        regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+                        loss_i=cross_entropy_loss+regularization_loss
+                        tower_losses.append(loss_i)
+                        tf.get_variable_scope().reuse_variables()
+                        grad_i=optimizer.compute_gradients(loss_i)
+                        tower_grads.append(grad_i)
+                    if i==0:
+                        pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
+    loss=tf.reduce_mean(tower_losses)
+    grads=average_gradients(tower_grads)
+    acc=tf.reduce_mean(accs)
+#     extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+#     with tf.control_dependencies(extra_update_ops):
+    train_op = optimizer.apply_gradients(grads, global_step)
+        
     saver = tf.train.Saver(max_to_keep=1)
     
     with tf.Session(config=config) as sess:
@@ -187,7 +212,8 @@ def get_dataset(args):
         labels.extend([i]*len(file_names))
     dataset=tf.data.Dataset.from_tensor_slices((img_paths,labels)).shuffle(buffer_size=len(img_paths))
     dataset=dataset.map(parse_dataset,num_parallel_calls=args.preprocess_multi_thread_num)
-    batch_size=args.batch_size
+    gpus=get_available_gpus()
+    batch_size=len(gpus)*args.batch_size
     dataset=dataset.batch(batch_size)
     print("Dataset Size={}".format(len(img_paths)))
     return dataset, len(img_paths)//batch_size

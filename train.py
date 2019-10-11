@@ -104,9 +104,10 @@ def main():
     optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
     with tf.variable_scope(tf.get_variable_scope()):
         with tf.name_scope("tower0") as scope:
-            tf.get_variable_scope().reuse_variables()
-            pred_class,  net= inference(x_batch, train_placeholder)
-            pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
+            with slim.arg_scope([slim.model_variable, slim.variable], device='/cpu:0'):
+                tf.get_variable_scope().reuse_variables()
+                pred_class,  net= inference(x_batch, train_placeholder)
+                pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
     match_result=tf.equal(pred_class, tf.cast(y_batch,tf.int64))
     match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
     acc=match_sum/args.batch_size

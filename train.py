@@ -58,7 +58,7 @@ def inference1(x_batch, is_training):
     pre_class=tf.argmax(net, axis=1)    
     return pre_class, net
 
-def inferece(x_batch, is_training):
+def inference(x_batch, is_training):
     alexnet=AlexNet(x_batch,keep_prob=0.8, num_classes=1000, skip_layer=[])
     alexnet.create()
     net=alexnet.fc8

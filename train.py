@@ -117,7 +117,7 @@ def main():
                         y_batch_i=y_batches[i]
                         image_path_batch_i=image_path_batches[i]
                         pred_class,  net= inference(x_batch_i, train_placeholder)
-                        match_result=tf.equal(pred_class, y_batch_i)
+                        match_result=tf.equal(pred_class, tf.cast(y_batch_i,tf.int64))
                         match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
                         acc1=match_sum/args.batch_size
                         accs.append(acc1)

@@ -137,7 +137,7 @@ def conv(x, filter_height, filter_width, num_filters, stride_y, stride_x, name,
                                          strides=[1, stride_y, stride_x, 1],
                                          padding=padding)
 
-    with tf.variable_scope(name, reuse=True) as scope:
+    with tf.variable_scope(name, reuse=tf.AUTO_REUSE) as scope:
         # Create tf variables for the weights and biases of the conv layer
         weights = tf.get_variable('weights', shape=[filter_height,
                                                     filter_width,

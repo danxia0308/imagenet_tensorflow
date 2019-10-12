@@ -42,7 +42,7 @@ def inference(x_batch, is_training):
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
     with tf.variable_scope('final', reuse=False):
-        net = slim.flatten(encoder.stage3, scope='flatten')
+        net = slim.flatten(encoder.stage4, scope='flatten')
         print(net,net.op.name, net.shape.as_list())
         net = slim.dropout(net, args.dropout, is_training=is_training, scope='Dropout')
         print(net,net.op.name, net.shape.as_list())

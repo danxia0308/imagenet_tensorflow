@@ -33,6 +33,7 @@ def parseArguments():
     parser.add_argument('--need_resize', default=False, type=bool)
     parser.add_argument('--preprocess_multi_thread_num', default=8, type=int)
     parser.add_argument('--gpu_num', default='0,1')
+    parser.add_argument('--log_dir',default='/home/nemo/imagenet/logs/')
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
@@ -115,7 +116,7 @@ def main():
 #         tf.get_variable_scope().reuse_variables()
         pred_class,  net= inference(x_batch, train_placeholder)
 #         tf.get_variable_scope().reuse_variables()
-#         pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
+        pred_class_test, _ = inference(test_input_placeholder, train_placeholder)
     match_result=tf.equal(pred_class, tf.cast(y_batch,tf.int64))
     match_sum=tf.reduce_sum(tf.cast(match_result,tf.float32))
     acc=match_sum/args.batch_size
@@ -125,6 +126,11 @@ def main():
     regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     loss=cross_entropy_loss+regularization_loss
     train_op=optimizer.minimize(loss, global_step)
+    tf.summary.scalar('total_loss', loss)
+    tf.summary.scalar('cross_entropy_loss', cross_entropy_loss)
+    tf.summary.scalar('regularization_loss', regularization_loss)
+    tf.summary.scalar('train_acc',acc)
+    merge=tf.summary.merge_all()
     
     saver = tf.train.Saver(max_to_keep=1)
     
@@ -134,6 +140,7 @@ def main():
         if save_path != None:
             print('restore from {}'.format(save_path))
             saver.restore(sess, save_path)
+        summary_writer=tf.summary.FileWriter(args.log_dir, sess.graph)
         accuracys=[]
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
@@ -144,22 +151,23 @@ def main():
             total_ce_loss=[]
             total_re_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _,accuracy,ce_loss, re_loss = sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss], feed_dict=feed_dict)
+                loss_result, _,accuracy,ce_loss, re_loss, summary_str= sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss,merge], feed_dict=feed_dict)
+                summary_writer.add_summary(summary_str, global_step=global_step)
                 total_loss.append(loss_result)
                 accuracys.append(accuracy)
                 total_ce_loss.append(ce_loss)
                 total_re_loss.append(re_loss)
             print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
-#             if i % args.validate_every == 0:
-#                 validate(sess,train_placeholder, test_input_placeholder, pred_class_test)
+            if i % args.validate_every == 0:
+                validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
-def validate(sess,train_placeholder, test_input_placeholder, pred_class):
-#     labels, paths = get_val_data(args)
-    labels, paths = get_val_data_from_train_data()
-    labels=labels[:500]
-    paths=paths[:500]
+def validate(sess,train_placeholder, test_input_placeholder, pred_class,summary_writer,global_step):
+    labels, paths = get_val_data(args)
+#     labels, paths = get_val_data_from_train_data()
+    labels=labels[:1000]
+    paths=paths[:1000]
     batch_num=len(paths)//args.batch_size
     pres=[]
     for i in tqdm(range(batch_num)):
@@ -173,6 +181,9 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class):
         pres.extend(pre)
     tp=np.sum(np.where(np.array(labels[:len(pres)])-np.array(pres)==0,1,0))
     acc=tp/(batch_num*args.batch_size)
+    summary=tf.Summary()
+    summary.value.add('val_acc',acc)
+    summary_writer.add_summary(summary, global_step)
     print('acc={}'.format(acc))
 
 def parse_dataset(image_path, label):

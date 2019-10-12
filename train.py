@@ -151,15 +151,15 @@ def main():
             total_ce_loss=[]
             total_re_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _,accuracy,ce_loss, re_loss, summary_str= sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss,merge], feed_dict=feed_dict)
-                summary_writer.add_summary(summary_str, global_step=global_step)
+                loss_result, _,accuracy,ce_loss, re_loss, summary_str, global_step_value= sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss,merge,global_step], feed_dict=feed_dict)
+                summary_writer.add_summary(summary_str, global_step=global_step_value)
                 total_loss.append(loss_result)
                 accuracys.append(accuracy)
                 total_ce_loss.append(ce_loss)
                 total_re_loss.append(re_loss)
             print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
             if i % args.validate_every == 0:
-                validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step)
+                validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step_value)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 

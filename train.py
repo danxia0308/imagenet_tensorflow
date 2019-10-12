@@ -150,16 +150,17 @@ def main():
             total_loss=[]
             total_ce_loss=[]
             total_re_loss=[]
-            for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _,accuracy,ce_loss, re_loss, summary_str, global_step_value= sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss,merge,global_step], feed_dict=feed_dict)
-                summary_writer.add_summary(summary_str, global_step=global_step_value)
-                total_loss.append(loss_result)
-                accuracys.append(accuracy)
-                total_ce_loss.append(ce_loss)
-                total_re_loss.append(re_loss)
-            print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
+#             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
+#                 loss_result, _,accuracy,ce_loss, re_loss, summary_str, global_step_value= sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss,merge,global_step], feed_dict=feed_dict)
+#                 summary_writer.add_summary(summary_str, global_step=global_step_value)
+#                 total_loss.append(loss_result)
+#                 accuracys.append(accuracy)
+#                 total_ce_loss.append(ce_loss)
+#                 total_re_loss.append(re_loss)
+#             print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
             if i % args.validate_every == 0:
                 validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step_value)
+                return
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
@@ -182,7 +183,7 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class,summary_
     tp=np.sum(np.where(np.array(labels[:len(pres)])-np.array(pres)==0,1,0))
     acc=tp/(batch_num*args.batch_size)
     summary=tf.Summary()
-    summary.value.add('val_acc',acc)
+    summary.value.add(tag='val_acc',simple_value=acc)
     summary_writer.add_summary(summary, global_step)
     print('acc={}'.format(acc))
 

@@ -129,9 +129,9 @@ def main():
     regularization_loss = tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     loss=cross_entropy_loss+regularization_loss
     train_op=optimizer.minimize(loss, global_step)
-    tf.summary.scalar('total_loss', loss)
-    tf.summary.scalar('train_acc',acc)
-    merge=tf.summary.merge_all()
+#     tf.summary.scalar('total_loss', loss)
+#     tf.summary.scalar('train_acc',acc)
+#     merge=tf.summary.merge_all()
     
     saver = tf.train.Saver(max_to_keep=1)
     
@@ -142,7 +142,7 @@ def main():
             print('restore from {}'.format(save_path))
             logger.debug('restore from {}'.format(save_path))
             saver.restore(sess, save_path)
-        summary_writer=tf.summary.FileWriter(args.summary_log_dir, sess.graph)
+#         summary_writer=tf.summary.FileWriter(args.summary_log_dir, sess.graph)
         accuracys=[]
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
@@ -162,11 +162,11 @@ def main():
             print("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
             logger.debug("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
             if i % args.validate_every == 0:
-                validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step_value)
+                validate(sess,train_placeholder, test_input_placeholder, pred_class_test,global_step_value)
             if i % args.save_every == 0:
                 saver.save(sess, args.checkpoint_dir, global_step)
                 
-def validate(sess,train_placeholder, test_input_placeholder, pred_class,summary_writer,global_step):
+def validate(sess,train_placeholder, test_input_placeholder, pred_class,global_step):
     labels, paths = get_val_data(args)
 #     labels, paths = get_val_data_from_train_data()
     labels=labels[:1000]
@@ -184,9 +184,9 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class,summary_
         pres.extend(pre)
     tp=np.sum(np.where(np.array(labels[:len(pres)])-np.array(pres)==0,1,0))
     acc=tp/(batch_num*args.batch_size)
-    summary=tf.Summary()
-    summary.value.add(tag='val_acc',simple_value=acc)
-    summary_writer.add_summary(summary, global_step)
+#     summary=tf.Summary()
+#     summary.value.add(tag='val_acc',simple_value=acc)
+#     summary_writer.add_summary(summary, global_step)
     print('acc={}'.format(acc))
     logger.debug('acc={}'.format(acc))
 

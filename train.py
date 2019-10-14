@@ -154,9 +154,9 @@ def main():
             total_ce_loss=[]
             total_re_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-#                 loss_result, _,accuracy, global_step_value= sess.run([loss,train_op,acc,global_step], feed_dict=feed_dict)
-                loss_result, _,accuracy, summary_str, global_step_value= sess.run([loss,train_op,acc,merge,global_step], feed_dict=feed_dict)
-                summary_writer.add_summary(summary_str, global_step=global_step_value)
+                loss_result, _,accuracy, global_step_value= sess.run([loss,train_op,acc,global_step], feed_dict=feed_dict)
+#                 loss_result, _,accuracy, summary_str, global_step_value= sess.run([loss,train_op,acc,merge,global_step], feed_dict=feed_dict)
+#                 summary_writer.add_summary(summary_str, global_step=global_step_value)
                 total_loss.append(loss_result)
                 accuracys.append(accuracy)
             print("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))

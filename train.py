@@ -127,8 +127,6 @@ def main():
     loss=cross_entropy_loss+regularization_loss
     train_op=optimizer.minimize(loss, global_step)
     tf.summary.scalar('total_loss', loss)
-    tf.summary.scalar('cross_entropy_loss', cross_entropy_loss)
-    tf.summary.scalar('regularization_loss', regularization_loss)
     tf.summary.scalar('train_acc',acc)
     merge=tf.summary.merge_all()
     
@@ -151,13 +149,12 @@ def main():
             total_ce_loss=[]
             total_re_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _,accuracy,ce_loss, re_loss, summary_str, global_step_value= sess.run([loss,train_op,acc,cross_entropy_loss,regularization_loss,merge,global_step], feed_dict=feed_dict)
-                summary_writer.add_summary(summary_str, global_step=global_step_value)
+                loss_result, _,accuracy, global_step_value= sess.run([loss,train_op,acc,global_step], feed_dict=feed_dict)
+#                 loss_result, _,accuracy, summary_str, global_step_value= sess.run([loss,train_op,acc,merge,global_step], feed_dict=feed_dict)
+#                 summary_writer.add_summary(summary_str, global_step=global_step_value)
                 total_loss.append(loss_result)
                 accuracys.append(accuracy)
-                total_ce_loss.append(ce_loss)
-                total_re_loss.append(re_loss)
-            print("loss={}, acc={},ce_loss={},re_loss={}".format(np.mean(total_loss), np.mean(accuracys), np.mean(total_ce_loss),np.mean(total_re_loss)))
+            print("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
             if i % args.validate_every == 0:
                 validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step_value)
             if i % args.save_every == 0:

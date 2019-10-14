@@ -14,6 +14,7 @@ from tensorflow.python.client import device_lib
 import pdb
 import numpy as np
 import cv2 as cv
+from utils import logUtil
 
 def parseArguments():
     parser=argparse.ArgumentParser()
@@ -33,10 +34,12 @@ def parseArguments():
     parser.add_argument('--need_resize', default=False, type=bool)
     parser.add_argument('--preprocess_multi_thread_num', default=8, type=int)
     parser.add_argument('--gpu_num', default='0,1')
-    parser.add_argument('--log_dir',default='/home/nemo/imagenet/logs/')
+    parser.add_argument('--summary_log_dir',default='/home/nemo/imagenet/logs/')
+    parser.add_argument('--log_path',default='./train_log.log')
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
+logger=logUtil.getLogger(args.log_path)
 
 def inference(x_batch, is_training):
     #build the network
@@ -137,24 +140,27 @@ def main():
         save_path=tf.train.latest_checkpoint(args.checkpoint_dir)
         if save_path != None:
             print('restore from {}'.format(save_path))
+            logger.debug('restore from {}'.format(save_path))
             saver.restore(sess, save_path)
-        summary_writer=tf.summary.FileWriter(args.log_dir, sess.graph)
+        summary_writer=tf.summary.FileWriter(args.summary_log_dir, sess.graph)
         accuracys=[]
         for i in range(args.num_epochs):
             sess.run(iterator.initializer)
             learning_rate=misc.get_learning_rate(args.learning_rate_file, i)
             feed_dict={learning_rate_placeholder:learning_rate, train_placeholder:True}
             print("lr={}".format(learning_rate))
+            logger.debug("lr={}".format(learning_rate))
             total_loss=[]
             total_ce_loss=[]
             total_re_loss=[]
             for i in tqdm(range(batch_num_one_epoch),desc="epoch-"+str(i)):
-                loss_result, _,accuracy, global_step_value= sess.run([loss,train_op,acc,global_step], feed_dict=feed_dict)
-#                 loss_result, _,accuracy, summary_str, global_step_value= sess.run([loss,train_op,acc,merge,global_step], feed_dict=feed_dict)
-#                 summary_writer.add_summary(summary_str, global_step=global_step_value)
+#                 loss_result, _,accuracy, global_step_value= sess.run([loss,train_op,acc,global_step], feed_dict=feed_dict)
+                loss_result, _,accuracy, summary_str, global_step_value= sess.run([loss,train_op,acc,merge,global_step], feed_dict=feed_dict)
+                summary_writer.add_summary(summary_str, global_step=global_step_value)
                 total_loss.append(loss_result)
                 accuracys.append(accuracy)
             print("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
+            logger.debug("loss={}, acc={}".format(np.mean(total_loss), np.mean(accuracys)))
             if i % args.validate_every == 0:
                 validate(sess,train_placeholder, test_input_placeholder, pred_class_test,summary_writer,global_step_value)
             if i % args.save_every == 0:
@@ -182,6 +188,7 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class,summary_
     summary.value.add(tag='val_acc',simple_value=acc)
     summary_writer.add_summary(summary, global_step)
     print('acc={}'.format(acc))
+    logger.debug('acc={}'.format(acc))
 
 def parse_dataset(image_path, label):
     image_string=tf.read_file(image_path)

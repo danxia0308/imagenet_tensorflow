@@ -178,6 +178,8 @@ def validate(sess,train_placeholder, test_input_placeholder, pred_class,global_s
         path_batch=paths[i*args.batch_size:(i+1)*args.batch_size]
         for path in path_batch:
             img=cv.imread(path)
+            if args.need_resize:
+                img=cv.resize(img,(args.width,args.height))
             img=img[...,::-1]
             x_batch.append(img)
         pre = sess.run(pred_class, feed_dict={train_placeholder:False, test_input_placeholder:x_batch})

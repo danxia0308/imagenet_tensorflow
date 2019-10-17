@@ -41,7 +41,7 @@ def parseArguments():
 args=parseArguments()
 logger=logUtil.getLogger(args.log_path)
 
-def inference(x_batch, is_training):
+def inference1(x_batch, is_training):
     #build the network
     encoder = ShuffleNet(x_batch, num_classes=2, pretrained_path="", train_flag=is_training, weight_decay=args.weight_decay)
     encoder.build()
@@ -62,7 +62,7 @@ def inference(x_batch, is_training):
     pre_class=tf.argmax(net, axis=1)    
     return pre_class, net
 
-def inference1(x_batch, is_training):
+def inference(x_batch, is_training):
     x_input_casted=tf.cast(x_batch, tf.float32);
     preprocessed_input=(x_input_casted-127.5)/128
     alexnet=AlexNet(preprocessed_input,keep_prob=0.8, num_classes=1000, skip_layer=[])

@@ -15,6 +15,7 @@ import pdb
 import numpy as np
 import cv2 as cv
 from utils import logUtil
+import pickle
 
 def parseArguments():
     parser=argparse.ArgumentParser()
@@ -36,6 +37,8 @@ def parseArguments():
     parser.add_argument('--gpu_num', default='0,1')
     parser.add_argument('--summary_log_dir',default='/home/nemo/imagenet/logs/')
     parser.add_argument('--log_path',default='./train_log.log')
+    parser.add_argument('--save_pkl',default=False)
+    parser.add_argument('--pkl_path',default='./model.pkl')
     return parser.parse_args(sys.argv[1:]) 
 
 args=parseArguments()
@@ -142,6 +145,14 @@ def main():
             print('restore from {}'.format(save_path))
             logger.debug('restore from {}'.format(save_path))
             saver.restore(sess, save_path)
+        if args.save_pkl:
+            variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+            var_dict=[]
+            for variable in variables:
+                var_dict[variable.name]=sess.run(variable)
+            with open(args.pkl_path, 'wb') as f:
+                pickle.dump(var_dict,f)
+            return
 #         summary_writer=tf.summary.FileWriter(args.summary_log_dir, sess.graph)
         accuracys=[]
         for i in range(args.num_epochs):

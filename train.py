@@ -147,7 +147,7 @@ def main():
             saver.restore(sess, save_path)
         if args.save_pkl:
             variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-            var_dict=[]
+            var_dict={}
             for variable in variables:
                 var_dict[variable.name]=sess.run(variable)
             with open(args.pkl_path, 'wb') as f:
